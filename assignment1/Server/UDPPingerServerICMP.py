@@ -1,10 +1,10 @@
 import random
-from socket import *
+import socket
+import struct
 
-# Create a UDP socket
-serverSocket = socket(AF_INET, SOCK_DGRAM)
-
-# Assign IP address and port number to socket
+serverSocket = socket.socket(socket.AF_INET,socket.SOCK_RAW,socket.IPPROTO_ICMP)
+serverSocket.setsockopt(socket.SOL_IP, socket.IP_HDRINCL, 1)
+# TODO: Assign IP address and port number to socket
 HOST = 
 PORT = 
 serverSocket.bind((HOST, PORT))
@@ -13,12 +13,9 @@ print('server start at: %s:%s' % (HOST, PORT))
 print('wait for connection...')
 
 while True:
-    # Generate random number in the range of 0 to 10
-    rand = random.randint(0, 10)
     # Receive the client packet along with the address it is coming from
     message, address = serverSocket.recvfrom(1024)
-    message = message.upper()
-    if rand < 4:
-        continue
-    print('recvfrom ' + str(address) + ': ' + message.decode())
-    serverSocket.sendto(message, address)
+    icmp_header = message[20:28]
+    type, code, checksum, ID, sequence = struct.unpack('bbHHh', icmp_header)
+    print('recvfrom ' + str(address[0]), ", type: [" + str(type) + "], code: [" + str(code) + "], "\
+                   + "ID:[" + str(ID) + "], sequence number = [" + str(sequence) + "]")
